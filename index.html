@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ölüme Fısıldayan Adam</title>
+
+<style>
+body {
+    margin: 0;
+    background: #050505;
+    color: #e6e6e6;
+    font-family: Georgia, serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#container {
+    width: 100%;
+    max-width: 420px;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+#text {
+    font-size: 19px;
+    line-height: 1.7;
+    min-height: 50vh;
+}
+
+#choices {
+    margin-top: 32px;
+}
+
+.choice {
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+    font-size: 17px;
+}
+
+.choice:active {
+    background: rgba(255,255,255,0.05);
+}
+
+#whisper {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    font-size: 12px;
+    opacity: 0.35;
+    max-width: 160px;
+    text-align: right;
+    pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+    <div id="text"></div>
+    <div id="choices"></div>
+</div>
+
+<div id="whisper"></div>
+
+<script>
+let acceptance = 0;
+let sceneIndex = 0;
+let typingSpeed = 45;
+let skip = false;
+
+const scenes = [
+{
+text: "Uyandığında her şey yerli yerindeydi.\n\nSadece sen eksiktin.",
+choices: [
+{ t: "Eksik olduğumu kabul et.", v: 10 },
+{ t: "Bu his geçecek.", v: -10 }
+],
+whisper: "Bunu daha önce de hissetmiştin."
+},
+{
+text: "Sesin senden gelmediğini biliyordun.\n\nAma senden başka kimse yoktu.",
+choices: [
+{ t: "Dinle.", v: 15 },
+{ t: "Görmezden gel.", v: -15 }
+],
+whisper: "Sana alışığım."
+},
+{
+text: "Hatırladığın şeyler değil.\nUnuttukların ağırdı.\n\nBazı anılar, saklanmak için değil,\ngeri dönmek için bekler.",
+choices: [
+{ t: "Hatırla.", v: 10 },
+{ t: "Unutmaya devam et.", v: -10 },
+{ t: "Emin değilim.", v: 0 }
+],
+whisper: "Hepsi geçmedi."
+},
+{
+text: "Bazı cümleler söylenmediği için değil,\nsöylense de anlaşılmayacağı için sustu.",
+choices: [
+{ t: "Söyle.", v: 15 },
+{ t: "Sus.", v: -5 }
+],
+whisper: "Sessizlik de bir cevap."
+},
+{
+text: "Onunla ilk kez aynı cümledeydin.\n\nÖlüm, adını söylemedi.",
+choices: [
+{ t: "Buradayım.", v: 20 },
+{ t: "Henüz değil.", v: -10 }
+],
+whisper: "Hazır olmak diye bir şey yok."
+}
+];
+
+function typeText(text, callback) {
+    const el = document.getElementById("text");
+    el.innerText = "";
+    skip = false;
+    let i = 0;
+
+    function typing() {
+        if (skip) {
+            el.innerText = text;
+            callback();
+            return;
+        }
+        if (i < text.length) {
+            el.innerText += text[i];
+            i++;
+            setTimeout(typing, typingSpeed);
+        } else {
+            callback();
+        }
+    }
+    typing();
+}
+
+document.getElementById("text").addEventListener("click", () => {
+    skip = true;
+});
+
+function renderScene() {
+    const scene = scenes[sceneIndex];
+    document.getElementById("choices").innerHTML = "";
+    document.getElementById("whisper").innerText = scene.whisper || "";
+
+    document.body.style.background = `rgb(${5 + acceptance / 5},5,5)`;
+
+    typeText(scene.text, () => {
+        setTimeout(() => {
+            scene.choices.forEach(c => {
+                const div = document.createElement("div");
+                div.className = "choice";
+                div.innerText = c.t;
+                div.onclick = () => {
+                    acceptance += c.v;
+                    sceneIndex++;
+                    if (sceneIndex < scenes.length) {
+                        renderScene();
+                    } else {
+                        endGame();
+                    }
+                };
+                document.getElementById("choices").appendChild(div);
+            });
+        }, 1200);
+    });
+}
+
+function endGame() {
+    let finalText = "";
+
+    if (acceptance > 30) {
+        finalText = "Artık fısıldamana gerek yoktu.\n\nO zaten biliyordu.";
+    } else if (acceptance < -30) {
+        finalText = "Ses gitti.\n\nSen kaldın.\n\nBu daha zor bir sessizlikti.";
+    } else {
+        finalText = "Bazı konuşmalar yarım kalır.\n\nÇünkü ikisi de hazır değildir.";
+    }
+
+    document.getElementById("whisper").innerText = "";
+    document.getElementById("choices").innerHTML = "";
+
+    typeText(finalText, () => {});
+}
+
+renderScene();
+</script>
+
+</body>
+</html>
