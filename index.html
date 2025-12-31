@@ -3,194 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ölüme Fısıldayan Adam</title>
+<title>Fısıltıya Yakın</title>
 
 <style>
 body {
-    margin: 0;
-    background: #050505;
-    color: #e6e6e6;
-    font-family: Georgia, serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  margin: 0;
+  background: #070707;
+  color: #e5e5e5;
+  font-family: Georgia, serif;
+  height: 100vh;
+  overflow: hidden;
 }
 
-#container {
-    width: 100%;
-    max-width: 420px;
-    padding: 24px;
-    box-sizing: border-box;
+/* BALIKLAR */
+#fishbar {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+.fish {
+  width: 30px;
+  height: 14px;
+  background: orange;
+  border-radius: 50%;
+  position: relative;
+}
+.fish::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 3px;
+  border-left: 7px solid orange;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
 }
 
+/* TİLKİ */
+#fox {
+  position: fixed;
+  right: 10px;
+  top: 40%;
+  width: 28px;
+  height: 28px;
+  background: orange;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  opacity: 0.55;
+}
+
+/* OYUN */
+#game {
+  max-width: 440px;
+  margin: auto;
+  padding: 20px;
+}
 #text {
-    font-size: 19px;
-    line-height: 1.7;
-    min-height: 50vh;
+  font-size: 19px;
+  line-height: 1.75;
+  min-height: 58vh;
 }
-
-#choices {
-    margin-top: 32px;
-}
-
 .choice {
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid rgba(255,255,255,0.2);
-    text-align: center;
-    font-size: 17px;
+  padding: 14px;
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,0.25);
+  text-align: center;
 }
-
 .choice:active {
-    background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.08);
 }
-
 #whisper {
-    position: fixed;
-    bottom: 16px;
-    right: 16px;
-    font-size: 12px;
-    opacity: 0.35;
-    max-width: 160px;
-    text-align: right;
-    pointer-events: none;
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  font-size: 12px;
+  opacity: 0.35;
 }
 </style>
 </head>
 
 <body>
 
-<div id="container">
-    <div id="text"></div>
-    <div id="choices"></div>
+<div id="fishbar">
+  <div class="fish"></div>
+  <div class="fish"></div>
+  <div class="fish"></div>
+</div>
+
+<div id="fox"></div>
+
+<div id="game">
+  <div id="text"></div>
+  <div id="choices"></div>
 </div>
 
 <div id="whisper"></div>
 
 <script>
-let acceptance = 0;
 let sceneIndex = 0;
-let typingSpeed = 45;
+let awareness = 0;
 let skip = false;
+const speed = 40;
 
 const scenes = [
 {
-text: "Uyandığında her şey yerli yerindeydi.\n\nSadece sen eksiktin.",
-choices: [
-{ t: "Eksik olduğumu kabul et.", v: 10 },
-{ t: "Bu his geçecek.", v: -10 }
-],
-whisper: "Bunu daha önce de hissetmiştin."
+  text: "Adam, durması gerektiğini hissetti. Yol sessizdi ama sessizlik boş değildi. İçinde bir şey, adını koyamadığı bir ağırlık gibi kıpırdanıyordu.",
+  whisper: "Bazı duraklar seçilmez.",
+  choices: [
+    { t: "Dur ve dinle", v: 10 },
+    { t: "Yolu hızlanarak geç", v: -10 }
+  ]
 },
 {
-text: "Sesin senden gelmediğini biliyordun.\n\nAma senden başka kimse yoktu.",
-choices: [
-{ t: "Dinle.", v: 15 },
-{ t: "Görmezden gel.", v: -15 }
-],
-whisper: "Sana alışığım."
+  text: "Fısıltı ilk kez o anda geldi. Net değildi. Bir cümle değil, bir niyet gibiydi. Sanki biri, düşüncelerinin arasına eğilmişti.",
+  whisper: "Sesler düşünceden önce gelir.",
+  choices: [
+    { t: "Fısıltıya odaklan", v: 10 },
+    { t: "Onu bastır", v: -10 }
+  ]
 },
 {
-text: "Hatırladığın şeyler değil.\nUnuttukların ağırdı.\n\nBazı anılar, saklanmak için değil,\ngeri dönmek için bekler.",
-choices: [
-{ t: "Hatırla.", v: 10 },
-{ t: "Unutmaya devam et.", v: -10 },
-{ t: "Emin değilim.", v: 0 }
-],
-whisper: "Hepsi geçmedi."
+  text: "İnsan neden ölümden korkar? diye sordu içindeki ses. Cevap basit değildi. Korku, sona değil; yarım kalanlara aitti.",
+  whisper: "Yarım kalan ağırdır.",
+  choices: [
+    { t: "Geçmişini düşün", v: 10 },
+    { t: "Bu sorudan kaç", v: -10 }
+  ]
 },
 {
-text: "Bazı cümleler söylenmediği için değil,\nsöylense de anlaşılmayacağı için sustu.",
-choices: [
-{ t: "Söyle.", v: 15 },
-{ t: "Sus.", v: -5 }
-],
-whisper: "Sessizlik de bir cevap."
+  text: "Tilkiyi fark etti. Kenarda duruyordu. Ne kaçıyordu ne yaklaşıyordu. Sadece izliyordu. Sanki kararını ölçüyordu.",
+  whisper: "Zekâ beklemeyi bilir.",
+  choices: [
+    { t: "Tilkinin bakışını takip et", v: 10 },
+    { t: "Gözlerini kaçır", v: -10 }
+  ]
 },
 {
-text: "Onunla ilk kez aynı cümledeydin.\n\nÖlüm, adını söylemedi.",
-choices: [
-{ t: "Buradayım.", v: 20 },
-{ t: "Henüz değil.", v: -10 }
-],
-whisper: "Hazır olmak diye bir şey yok."
+  text: "Yukarı baktığında üç balık gördü. Aynı yöne yüzüyorlardı. Kararsızlık bilmiyorlardı. Onlar için akış yeterliydi.",
+  whisper: "Akış, düşünmeyenler içindir.",
+  choices: [
+    { t: "Akışa kapıl", v: -10 },
+    { t: "Diren ve sorgula", v: 10 }
+  ]
+},
+{
+  text: "Fısıltı bu kez daha netti. Ölüm bir son değil, dedi. Ölüm, insanın kendine yalan söylemeyi bıraktığı andır.",
+  whisper: "Gerçek sessiz gelir.",
+  choices: [
+    { t: "Bu fikri kabul et", v: 15 },
+    { t: "Reddet", v: -15 }
+  ]
+},
+{
+  text: "Yolun bu noktasında geri dönüş yoktu. Ama ilerlemek de rahatlatıcı değildi. Seçim, artık bir yön değil; bir yüzleşmeydi.",
+  whisper: "Yol biter, yüzleşme bitmez.",
+  choices: [
+    { t: "Yüzleş", v: 15 },
+    { t: "Kendini kandır", v: -15 }
+  ]
+},
+{
+  text: "Adam durdu. İlk kez fısıltı sustu. Sessizlik kaldı. Ama bu sessizlik boş değildi. İçinde bir kabul vardı.",
+  whisper: "Sessizlik bir cevaptır.",
+  choices: [
+    { t: "Sessizliği kabul et", v: 10 },
+    { t: "Yeni bir ses ara", v: -10 }
+  ]
 }
 ];
 
-function typeText(text, callback) {
-    const el = document.getElementById("text");
-    el.innerText = "";
-    skip = false;
-    let i = 0;
-
-    function typing() {
-        if (skip) {
-            el.innerText = text;
-            callback();
-            return;
-        }
-        if (i < text.length) {
-            el.innerText += text[i];
-            i++;
-            setTimeout(typing, typingSpeed);
-        } else {
-            callback();
-        }
-    }
-    typing();
+function typeText(txt, cb){
+  const el = document.getElementById("text");
+  el.innerText = "";
+  skip = false;
+  let i = 0;
+  function step(){
+    if(skip){ el.innerText = txt; cb(); return; }
+    if(i < txt.length){
+      el.innerText += txt[i++];
+      setTimeout(step, speed);
+    } else cb();
+  }
+  step();
 }
 
-document.getElementById("text").addEventListener("click", () => {
-    skip = true;
-});
+document.getElementById("text").onclick = () => skip = true;
 
-function renderScene() {
-    const scene = scenes[sceneIndex];
-    document.getElementById("choices").innerHTML = "";
-    document.getElementById("whisper").innerText = scene.whisper || "";
+function render(){
+  const s = scenes[sceneIndex];
+  document.getElementById("choices").innerHTML = "";
+  document.getElementById("whisper").innerText = s.whisper;
 
-    document.body.style.background = `rgb(${5 + acceptance / 5},5,5)`;
-
-    typeText(scene.text, () => {
-        setTimeout(() => {
-            scene.choices.forEach(c => {
-                const div = document.createElement("div");
-                div.className = "choice";
-                div.innerText = c.t;
-                div.onclick = () => {
-                    acceptance += c.v;
-                    sceneIndex++;
-                    if (sceneIndex < scenes.length) {
-                        renderScene();
-                    } else {
-                        endGame();
-                    }
-                };
-                document.getElementById("choices").appendChild(div);
-            });
-        }, 1200);
+  typeText(s.text, () => {
+    s.choices.forEach(c => {
+      const d = document.createElement("div");
+      d.className = "choice";
+      d.innerText = c.t;
+      d.onclick = () => {
+        awareness += c.v;
+        sceneIndex++;
+        sceneIndex < scenes.length ? render() : ending();
+      };
+      document.getElementById("choices").appendChild(d);
     });
+  });
 }
 
-function endGame() {
-    let finalText = "";
+function ending(){
+  let endText =
+    awareness >= 40
+      ? "Fısıltı tamamen sustu. Adam, ölümle değil; kendisiyle barışmıştı. Bu, son değildi. İlk net andı."
+      : awareness <= -40
+      ? "Fısıltı hiç susmadı. Kaçtıkça çoğaldı. Adam yoluna devam etti ama yük hafiflemedi."
+      : "Sessizlik ve ses arasında kaldı. Ne kaçtı ne kabul etti. Yol açık, cevap eksikti.";
 
-    if (acceptance > 30) {
-        finalText = "Artık fısıldamana gerek yoktu.\n\nO zaten biliyordu.";
-    } else if (acceptance < -30) {
-        finalText = "Ses gitti.\n\nSen kaldın.\n\nBu daha zor bir sessizlikti.";
-    } else {
-        finalText = "Bazı konuşmalar yarım kalır.\n\nÇünkü ikisi de hazır değildir.";
-    }
-
-    document.getElementById("whisper").innerText = "";
-    document.getElementById("choices").innerHTML = "";
-
-    typeText(finalText, () => {});
+  document.getElementById("choices").innerHTML = "";
+  document.getElementById("whisper").innerText = "";
+  typeText(endText, () => {});
 }
 
-renderScene();
+render();
 </script>
 
 </body>
